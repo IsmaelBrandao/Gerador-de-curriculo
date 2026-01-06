@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Currículo PRO V4</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;700&family=Open+Sans:wght@400;600&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div class="app-container">
+        <aside class="editor no-print">
+            <h2>🛠️ Editor de Currículo</h2>
+            
+            <div class="control-group">
+                <label>📂 1. Escolha o Modelo:</label>
+                <div class="template-selector">
+                    <button onclick="changeLayout('layout-modern')" class="btn-template active">Moderno</button>
+                    <button onclick="changeLayout('layout-minimal')" class="btn-template">Minimal</button>
+                    <button onclick="changeLayout('layout-executive')" class="btn-template">Executivo</button>
+                    <button onclick="changeLayout('layout-tech')" class="btn-template">Tech (Dark)</button>
+                    <button onclick="changeLayout('layout-clean')" class="btn-template">Clean</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>🎨 2. Escolha a Cor:</label>
+                <div class="colors">
+                    <button class="color-btn" style="background:#0e4e5e" onclick="changeTheme('#0e4e5e')" title="Teal"></button>
+                    <button class="color-btn" style="background:#2c3e50" onclick="changeTheme('#2c3e50')" title="Azul Petróleo"></button>
+                    <button class="color-btn" style="background:#7f1d1d" onclick="changeTheme('#7f1d1d')" title="Vinho"></button>
+                    <button class="color-btn" style="background:#1e3a8a" onclick="changeTheme('#1e3a8a')" title="Azul Royal"></button>
+                    <button class="color-btn" style="background:#374151" onclick="changeTheme('#374151')" title="Grafite"></button>
+                    <button class="color-btn" style="background:#065f46" onclick="changeTheme('#065f46')" title="Verde Esmeralda"></button>
+                    <button class="color-btn" style="background:#000000" onclick="changeTheme('#000000')" title="Preto"></button>
+                </div>
+            </div>
+
+            <hr class="divider">
+
+            <div class="data-scroll">
+                <details open>
+                    <summary>👤 Dados Pessoais</summary>
+                    <div class="form-group">
+                        <label>Foto de Perfil</label>
+                        <input type="file" id="photoInput" accept="image/*">
+                    </div>
+                    <div class="form-group">
+                        <input type="text" id="nameInput" placeholder="Nome Completo">
+                        <input type="text" id="roleInput" placeholder="Cargo Pretendido (Ex: Dev Dados)">
+                    </div>
+                    <textarea id="summaryInput" placeholder="Resumo Profissional: Quem você é, experiência e o que busca..."></textarea>
+                </details>
+
+                <details>
+                    <summary>📞 Contato</summary>
+                    <div class="form-group">
+                        <input type="text" id="emailInput" placeholder="E-mail">
+                        <input type="text" id="phoneInput" placeholder="Telefone / WhatsApp">
+                        <input type="text" id="locationInput" placeholder="Cidade - UF">
+                        <input type="text" id="linkedinInput" placeholder="LinkedIn (URL ou Usuário)">
+                        <input type="text" id="portfolioInput" placeholder="Portfólio / GitHub / Site">
+                    </div>
+                </details>
+
+                <details>
+                    <summary>💼 Experiência Profissional</summary>
+                    <div id="experienceFormList"></div>
+                    <button class="btn-add" onclick="addExperienceField()">+ Adicionar Experiência</button>
+                </details>
+
+                <details>
+                    <summary>🎓 Formação Acadêmica</summary>
+                    <div id="educationFormList"></div>
+                    <button class="btn-add" onclick="addEducationField()">+ Adicionar Formação</button>
+                </details>
+
+                <details>
+                    <summary>⚡ Habilidades & Idiomas</summary>
+                    <div class="form-group">
+                        <label>Habilidades (Hard Skills)</label>
+                        <textarea id="skillsInput" placeholder="Separe por vírgula (Ex: Python, SQL, Gestão, Scrum)"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Idiomas</label>
+                        <textarea id="languagesInput" placeholder="Separe por vírgula (Ex: Inglês Avançado, Espanhol Básico)"></textarea>
+                    </div>
+                </details>
+            </div>
+
+            <button onclick="window.print()" class="btn-print">🖨️ Salvar PDF</button>
+        </aside>
+
+        <main class="preview-area">
+            <div class="resume layout-modern" id="resumePreview">
+                
+                <div class="resume-sidebar">
+                    <div class="profile-photo-container">
+                        <img id="displayPhoto" src="https://via.placeholder.com/150?text=Foto" alt="Sua Foto">
+                    </div>
+                    
+                    <div class="sidebar-wrapper">
+                        <div class="sidebar-section">
+                            <h3>Contato</h3>
+                            <ul class="contact-list">
+                                <li id="liEmail"><i class="fas fa-envelope"></i> <span id="displayEmail"></span></li>
+                                <li id="liPhone"><i class="fas fa-phone"></i> <span id="displayPhone"></span></li>
+                                <li id="liLocation"><i class="fas fa-map-marker-alt"></i> <span id="displayLocation"></span></li>
+                                <li id="liLinkedin"><i class="fab fa-linkedin"></i> <span id="displayLinkedin"></span></li>
+                                <li id="liPortfolio"><i class="fas fa-globe"></i> <span id="displayPortfolio"></span></li>
+                            </ul>
+                        </div>
+
+                        <div class="sidebar-section" id="secSkills">
+                            <h3>Habilidades</h3>
+                            <ul id="displaySkills" class="tags-list"></ul>
+                        </div>
+
+                        <div class="sidebar-section" id="secLanguages">
+                            <h3>Idiomas</h3>
+                            <ul id="displayLanguages" class="list-simple"></ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="resume-main">
+                    <header class="resume-header">
+                        <h1 id="displayName">Seu Nome</h1>
+                        <h2 id="displayRole">Seu Cargo</h2>
+                    </header>
+
+                    <section class="main-section" id="secSummary">
+                        <h3><i class="fas fa-user-circle icon-header"></i> Resumo</h3>
+                        <p id="displaySummary">Preencha o resumo no editor para visualizar aqui...</p>
+                    </section>
+
+                    <section class="main-section">
+                        <h3><i class="fas fa-briefcase icon-header"></i> Experiência</h3>
+                        <div id="displayExperienceList">
+                            <p class="placeholder-text">Adicione suas experiências no menu lateral...</p>
+                        </div>
+                    </section>
+
+                    <section class="main-section">
+                        <h3><i class="fas fa-graduation-cap icon-header"></i> Formação</h3>
+                        <div id="displayEducationList"></div>
+                    </section>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
