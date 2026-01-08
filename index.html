@@ -3,16 +3,179 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerador de Currículo PRO V4</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Gerador de Currículo PRO - V7</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;700&family=Open+Sans:wght@400;600&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* ================= ESTILOS (CSS) ================= */
+        :root {
+            --primary: #0e4e5e; 
+            --text-dark: #333;
+            --sidebar-bg: var(--primary);
+            --sidebar-txt: #fff;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Open Sans', sans-serif; background: #333; height: 100vh; overflow: hidden; }
+
+        /* === EDITOR === */
+        .app-container { display: flex; height: 100vh; }
+        .editor { 
+            width: 400px; background: #fff; padding: 20px; 
+            border-right: 1px solid #444; display: flex; flex-direction: column; 
+        }
+        .editor h2 { margin-bottom: 15px; color: #333; font-size: 1.2rem; }
+        .divider { margin: 15px 0; border: 0; border-top: 1px solid #ddd; }
+        .data-scroll { flex: 1; overflow-y: auto; padding-right: 5px; }
+
+        .control-group { margin-bottom: 15px; background: #f8f9fa; padding: 10px; border-radius: 6px; border: 1px solid #eee; }
+        .control-group label { display: block; font-weight: bold; margin-bottom: 8px; font-size: 0.85rem; }
+
+        .template-selector { display: flex; gap: 5px; flex-wrap: wrap; }
+        .btn-template { 
+            flex: 1 1 30%; padding: 8px 5px; cursor: pointer; border: 1px solid #ccc; 
+            background: white; border-radius: 4px; font-size: 0.75rem; transition: 0.2s;
+        }
+        .btn-template:hover { background: #eee; }
+        .btn-template.active { background: var(--primary); color: white; border-color: var(--primary); font-weight: bold;}
+
+        .colors { display: flex; gap: 8px; flex-wrap: wrap; }
+        .color-btn { 
+            width: 25px; height: 25px; border-radius: 50%; border: 2px solid #fff; 
+            cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transition: transform 0.2s; 
+        }
+        .color-btn:hover { transform: scale(1.2); }
+
+        /* Inputs e Checkbox */
+        input[type="text"], input[type="file"], textarea { width: 100%; padding: 8px; margin-bottom: 5px; border: 1px solid #ccc; border-radius: 4px; font-family: inherit; }
+        textarea { height: 70px; resize: vertical; }
+
+        .checkbox-container {
+            display: flex; align-items: center; gap: 8px; margin-top: 5px; background: #f0f0f0; padding: 5px 10px; border-radius: 4px;
+        }
+        .checkbox-container input { width: auto; margin: 0; }
+        .checkbox-container label { font-size: 0.8rem; font-weight: normal; margin: 0; color: #555; cursor: pointer;}
+
+        details { margin-bottom: 10px; border: 1px solid #eee; border-radius: 5px; }
+        summary { padding: 10px; cursor: pointer; background: #fafafa; font-weight: 600; list-style: none; font-size: 0.9rem;}
+        summary:hover { background: #f0f0f0; }
+
+        .btn-add { width: 100%; padding: 8px; background: #f0f0f0; border: 1px dashed #999; cursor: pointer; margin-top: 5px; font-size: 0.85rem; }
+        .btn-print { 
+            width: 100%; padding: 15px; background: #27ae60; color: white; border: none; 
+            font-size: 1rem; font-weight: bold; cursor: pointer; margin-top: 10px; border-radius: 6px; 
+        }
+
+        /* === PREVIEW === */
+        .preview-area { flex: 1; padding: 40px; overflow-y: auto; display: flex; justify-content: center; background: #525659; }
+
+        .resume {
+            width: 210mm; min-height: 297mm; background: white; display: flex;
+            box-shadow: 0 0 15px rgba(0,0,0,0.5); position: relative;
+            transition: background 0.3s ease;
+        }
+
+        /* Container da Foto */
+        .profile-photo-container { margin-bottom: 20px; }
+        .profile-photo-container img { 
+            width: 140px; height: 140px; border-radius: 50%; object-fit: cover; 
+            display: block; margin: 0 auto; 
+        }
+
+        /* Header Ajustado */
+        .resume-header {
+            margin-bottom: 50px; 
+            border-bottom: none; 
+        }
+
+        .contact-list li, .list-simple li { 
+            list-style: none; margin-bottom: 8px; font-size: 0.85rem; 
+            display: flex; align-items: center; gap: 10px; word-break: break-all;
+        }
+        .item-block { margin-bottom: 15px; page-break-inside: avoid; }
+        .item-header { display: flex; justify-content: space-between; font-weight: bold; font-size: 1rem; color: #222; }
+        .item-sub { font-style: italic; color: #666; font-size: 0.9rem; }
+        .date-span { color: var(--primary); font-weight: bold; font-size: 0.85rem; white-space: nowrap; margin-left: 10px;}
+        .item-desc { font-size: 0.9rem; margin-top: 5px; color: #444; white-space: pre-line; line-height: 1.4; }
+        .placeholder-text { color: #ccc; font-style: italic; }
+
+        /* === LAYOUTS === */
+        /* 1. MODERNO */
+        .layout-modern .resume-sidebar { width: 32%; background: var(--primary); color: white; padding: 30px 20px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .layout-modern .resume-main { width: 68%; padding: 30px 30px; }
+        .layout-modern .profile-photo-container img { border: 4px solid rgba(255,255,255,0.3); }
+        .layout-modern h3 { text-transform: uppercase; letter-spacing: 1px; }
+        .layout-modern .sidebar-section h3 { border-bottom: 1px solid rgba(255,255,255,0.2); margin-bottom: 15px; font-size: 0.95rem; }
+        .layout-modern .main-section h3 { color: #333; border-bottom: 2px solid var(--primary); margin-bottom: 15px; font-size: 1.1rem; padding-bottom: 5px; }
+        .layout-modern .tags-list li { background: rgba(255,255,255,0.2); display: inline-block; padding: 3px 8px; margin: 2px; border-radius: 4px; font-size: 0.85rem; }
+        .layout-modern .icon-header { color: var(--primary); margin-right: 8px; }
+
+        /* 2. MINIMALISTA */
+        .layout-minimal { font-family: 'Merriweather', serif; }
+        .layout-minimal .resume-sidebar { width: 30%; background: #fff; color: #333; padding: 30px 20px; border-right: 1px solid #ddd; }
+        .layout-minimal .resume-main { width: 70%; padding: 30px 30px; }
+        .layout-minimal .profile-photo-container img { border-radius: 4px; border: 1px solid #ddd; width: 120px; height: 120px; }
+        .layout-minimal .resume-header h1 { color: var(--primary); font-family: 'Merriweather', serif; }
+        .layout-minimal h3 { font-family: 'Open Sans', sans-serif; font-weight: bold; color: var(--primary); text-transform: uppercase; font-size: 0.9rem; }
+        .layout-minimal .sidebar-section h3 { border-bottom: 1px solid #ccc; margin-bottom: 10px; color: #333; }
+        .layout-minimal .main-section h3 { border-bottom: 1px solid #ccc; color: #333; }
+        .layout-minimal .tags-list li { border: 1px solid #999; color: #333; padding: 2px 6px; display: inline-block; margin: 2px; border-radius: 3px; font-size: 0.8rem; }
+        .layout-minimal i { color: var(--primary); }
+
+        /* 3. EXECUTIVO */
+        .layout-executive { flex-direction: row-reverse; }
+        .layout-executive .resume-sidebar { width: 30%; background: #222; color: #ddd; padding: 30px 20px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .layout-executive .resume-main { width: 70%; padding: 30px 30px; }
+        .layout-executive .resume-header { border-bottom: 4px solid var(--primary); padding-bottom: 20px; margin-bottom: 50px; }
+        .layout-executive .resume-header h1 { font-size: 2.5rem; font-weight: 800; color: #000; }
+        .layout-executive .resume-header h2 { color: var(--primary); font-weight: bold; text-transform: uppercase; }
+        .layout-executive .profile-photo-container img { border-radius: 0; border: 2px solid var(--primary); }
+        .layout-executive .sidebar-section h3 { color: var(--primary); border-bottom: 1px solid #444; margin-bottom: 15px; }
+        .layout-executive .main-section h3 { background: #f4f4f4; padding: 5px 10px; border-left: 5px solid var(--primary); text-transform: uppercase; font-size: 1rem; }
+        .layout-executive .tags-list li { background: #444; color: white; padding: 4px 8px; margin: 2px; display: inline-block; }
+
+        /* 4. TECH */
+        .layout-tech { background-color: #1e1e1e; color: #e0e0e0; font-family: 'Roboto Mono', monospace; }
+        .layout-tech .resume-sidebar { width: 30%; background: #252526; color: #a0a0a0; border-right: 1px solid #333; padding: 30px 20px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .layout-tech .resume-main { width: 70%; padding: 30px 30px; background: #1e1e1e; color: #d4d4d4; -webkit-print-color-adjust: exact; print-color-adjust: exact;}
+        .layout-tech .profile-photo-container img { border-radius: 10px; border: 2px solid var(--primary); }
+        .layout-tech .resume-header h1 { color: #fff; letter-spacing: -1px; }
+        .layout-tech .resume-header h2 { color: var(--primary); }
+        .layout-tech h3 { color: var(--primary); text-transform: uppercase; font-size: 0.9rem; font-weight: bold; }
+        .layout-tech .sidebar-section h3 { border-bottom: 1px solid #3e3e42; margin-bottom: 10px; }
+        .layout-tech .main-section h3 { border-bottom: 1px solid #3e3e42; padding-bottom: 5px; display: inline-block; margin-bottom: 15px; }
+        .layout-tech .tags-list li { background: #333; color: var(--primary); border: 1px solid var(--primary); padding: 3px 6px; display: inline-block; margin: 2px; }
+        .layout-tech .item-header { color: #fff; }
+        .layout-tech .item-sub { color: #888; }
+        .layout-tech .item-desc { color: #aaa; }
+        .layout-tech i { color: var(--primary); }
+
+        /* 5. CLEAN */
+        .layout-clean .resume-sidebar { width: 30%; background: white; color: #444; border-right: 1px solid #ccc; padding: 30px 20px 30px 0; margin-left: 20px; }
+        .layout-clean .resume-main { width: 70%; padding: 30px 30px; }
+        .layout-clean .profile-photo-container img { filter: grayscale(100%); width: 130px; height: 130px; border: none; }
+        .layout-clean .resume-header h1 { font-weight: 300; font-size: 2.5rem; color: #000; letter-spacing: 2px; }
+        .layout-clean .resume-header h2 { font-weight: bold; color: #000; font-size: 0.9rem; letter-spacing: 3px; margin-top: 10px; }
+        .layout-clean h3 { color: #000; font-weight: bold; text-transform: uppercase; font-size: 0.8rem; border-bottom: 2px solid #000; padding-bottom: 8px; margin-bottom: 20px; }
+        .layout-clean i { color: #000; }
+        .layout-clean .tags-list li { background: #f4f4f4; color: #000; padding: 4px 8px; display: inline-block; margin: 2px; font-weight: 600; }
+        .layout-clean .date-span { color: #000; background: #eee; padding: 2px 6px; border-radius: 4px; }
+
+        @media print {
+            body { background: white; height: auto; overflow: visible; }
+            .no-print { display: none !important; }
+            .app-container { display: block; height: auto; }
+            .preview-area { padding: 0; background: white; display: block; }
+            .resume { width: 100%; box-shadow: none; margin: 0; min-height: 100vh; height: auto; }
+        }
+    </style>
 </head>
 <body>
 
     <div class="app-container">
         <aside class="editor no-print">
-            <h2>🛠️ Editor de Currículo</h2>
+            <h2>🛠️ Editor de Currículo PRO</h2>
             
             <div class="control-group">
                 <label>📂 1. Escolha o Modelo:</label>
@@ -20,7 +183,7 @@
                     <button onclick="changeLayout('layout-modern')" class="btn-template active">Moderno</button>
                     <button onclick="changeLayout('layout-minimal')" class="btn-template">Minimal</button>
                     <button onclick="changeLayout('layout-executive')" class="btn-template">Executivo</button>
-                    <button onclick="changeLayout('layout-tech')" class="btn-template">Tech (Dark)</button>
+                    <button onclick="changeLayout('layout-tech')" class="btn-template">Tech</button>
                     <button onclick="changeLayout('layout-clean')" class="btn-template">Clean</button>
                 </div>
             </div>
@@ -28,12 +191,13 @@
             <div class="control-group">
                 <label>🎨 2. Escolha a Cor:</label>
                 <div class="colors">
+                    <button class="color-btn" style="background:#993399" onclick="changeTheme('#993399')" title="Roxo"></button>
                     <button class="color-btn" style="background:#0e4e5e" onclick="changeTheme('#0e4e5e')" title="Teal"></button>
                     <button class="color-btn" style="background:#2c3e50" onclick="changeTheme('#2c3e50')" title="Azul Petróleo"></button>
                     <button class="color-btn" style="background:#7f1d1d" onclick="changeTheme('#7f1d1d')" title="Vinho"></button>
                     <button class="color-btn" style="background:#1e3a8a" onclick="changeTheme('#1e3a8a')" title="Azul Royal"></button>
                     <button class="color-btn" style="background:#374151" onclick="changeTheme('#374151')" title="Grafite"></button>
-                    <button class="color-btn" style="background:#065f46" onclick="changeTheme('#065f46')" title="Verde Esmeralda"></button>
+                    <button class="color-btn" style="background:#065f46" onclick="changeTheme('#065f46')" title="Verde"></button>
                     <button class="color-btn" style="background:#000000" onclick="changeTheme('#000000')" title="Preto"></button>
                 </div>
             </div>
@@ -46,47 +210,52 @@
                     <div class="form-group">
                         <label>Foto de Perfil</label>
                         <input type="file" id="photoInput" accept="image/*">
+                        
+                        <div class="checkbox-container">
+                            <input type="checkbox" id="togglePhoto">
+                            <label for="togglePhoto">Remover Foto (Sem moldura)</label>
+                        </div>
                     </div>
+
                     <div class="form-group">
                         <input type="text" id="nameInput" placeholder="Nome Completo">
-                        <input type="text" id="roleInput" placeholder="Cargo Pretendido (Ex: Dev Dados)">
+                        <input type="text" id="ageInput" placeholder="Idade / Data de Nascimento">
+                        <input type="text" id="roleInput" placeholder="Cargo Pretendido">
                     </div>
-                    <textarea id="summaryInput" placeholder="Resumo Profissional: Quem você é, experiência e o que busca..."></textarea>
+                    <textarea id="summaryInput" placeholder="Resumo Profissional..."></textarea>
                 </details>
 
                 <details>
-                    <summary>📞 Contato</summary>
+                    <summary>📞 Contato e Localização</summary>
                     <div class="form-group">
-                        <input type="text" id="emailInput" placeholder="E-mail">
-                        <input type="text" id="phoneInput" placeholder="Telefone / WhatsApp">
                         <input type="text" id="locationInput" placeholder="Cidade - UF">
-                        <input type="text" id="linkedinInput" placeholder="LinkedIn (URL ou Usuário)">
-                        <input type="text" id="portfolioInput" placeholder="Portfólio / GitHub / Site">
+                        <input type="text" id="emailInput" placeholder="E-mail">
+                        <input type="text" id="phoneInput" placeholder="Telefone">
+                        <input type="text" id="linkedinInput" placeholder="LinkedIn">
+                        <input type="text" id="portfolioInput" placeholder="Portfólio / Site">
                     </div>
                 </details>
 
                 <details>
-                    <summary>💼 Experiência Profissional</summary>
+                    <summary>💼 Experiência</summary>
                     <div id="experienceFormList"></div>
                     <button class="btn-add" onclick="addExperienceField()">+ Adicionar Experiência</button>
                 </details>
 
                 <details>
-                    <summary>🎓 Formação Acadêmica</summary>
+                    <summary>🎓 Formação</summary>
                     <div id="educationFormList"></div>
                     <button class="btn-add" onclick="addEducationField()">+ Adicionar Formação</button>
                 </details>
 
                 <details>
-                    <summary>⚡ Habilidades & Idiomas</summary>
-                    <div class="form-group">
-                        <label>Habilidades (Hard Skills)</label>
-                        <textarea id="skillsInput" placeholder="Separe por vírgula (Ex: Python, SQL, Gestão, Scrum)"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>Idiomas</label>
-                        <textarea id="languagesInput" placeholder="Separe por vírgula (Ex: Inglês Avançado, Espanhol Básico)"></textarea>
-                    </div>
+                    <summary>⚡ Habilidades</summary>
+                    <textarea id="skillsInput" placeholder="Habilidades (separar por vírgula)"></textarea>
+                </details>
+
+                <details>
+                    <summary>🌎 Idiomas</summary>
+                    <textarea id="languagesInput" placeholder="Idiomas (separar por vírgula)"></textarea>
                 </details>
             </div>
 
@@ -97,17 +266,31 @@
             <div class="resume layout-modern" id="resumePreview">
                 
                 <div class="resume-sidebar">
-                    <div class="profile-photo-container">
-                        <img id="displayPhoto" src="https://via.placeholder.com/150?text=Foto" alt="Sua Foto">
+                    <div class="profile-photo-container" id="photoContainer">
+                        <img id="displayPhoto" src="https://via.placeholder.com/150?text=Foto" alt="Foto">
                     </div>
                     
                     <div class="sidebar-wrapper">
+                        
                         <div class="sidebar-section">
-                            <h3>Contato</h3>
+                            <h3>Dados Pessoais</h3>
+                            <ul class="contact-list">
+                                <li id="liAge"><i class="fas fa-calendar-days"></i> <span id="displayAge"></span></li>
+                            </ul>
+                        </div>
+
+                        <div class="sidebar-section">
+                            <h3>Localização</h3>
+                            <ul class="contact-list">
+                                <li id="liLocation"><i class="fas fa-map-marker-alt"></i> <span id="displayLocation"></span></li>
+                            </ul>
+                        </div>
+
+                        <div class="sidebar-section">
+                            <h3>Contatos</h3>
                             <ul class="contact-list">
                                 <li id="liEmail"><i class="fas fa-envelope"></i> <span id="displayEmail"></span></li>
                                 <li id="liPhone"><i class="fas fa-phone"></i> <span id="displayPhone"></span></li>
-                                <li id="liLocation"><i class="fas fa-map-marker-alt"></i> <span id="displayLocation"></span></li>
                                 <li id="liLinkedin"><i class="fab fa-linkedin"></i> <span id="displayLinkedin"></span></li>
                                 <li id="liPortfolio"><i class="fas fa-globe"></i> <span id="displayPortfolio"></span></li>
                             </ul>
@@ -133,13 +316,13 @@
 
                     <section class="main-section" id="secSummary">
                         <h3><i class="fas fa-user-circle icon-header"></i> Resumo</h3>
-                        <p id="displaySummary">Preencha o resumo no editor para visualizar aqui...</p>
+                        <p id="displaySummary">Preencha o resumo no editor...</p>
                     </section>
 
                     <section class="main-section">
                         <h3><i class="fas fa-briefcase icon-header"></i> Experiência</h3>
                         <div id="displayExperienceList">
-                            <p class="placeholder-text">Adicione suas experiências no menu lateral...</p>
+                            <p class="placeholder-text">Adicione experiências...</p>
                         </div>
                     </section>
 
@@ -152,6 +335,161 @@
         </main>
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        // --- Gerenciamento de Layout ---
+        function changeLayout(layoutClass) {
+            const resume = document.getElementById('resumePreview');
+            resume.classList.remove('layout-modern', 'layout-minimal', 'layout-executive', 'layout-tech', 'layout-clean');
+            resume.classList.add(layoutClass);
+
+            const buttons = document.querySelectorAll('.btn-template');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            buttons.forEach(btn => {
+                if(btn.getAttribute('onclick').includes(layoutClass)) btn.classList.add('active');
+            });
+        }
+
+        // --- Gerenciamento de Tema ---
+        function changeTheme(color) {
+            document.documentElement.style.setProperty('--primary', color);
+        }
+
+        // --- Lógica de Visibilidade ---
+        function toggleVisibility(value, elementId) {
+            const el = document.getElementById(elementId);
+            if (!el) return;
+            el.style.display = (value && value.trim() !== "") ? "flex" : "none";
+        }
+
+        function bindInputToDisplay(inputId, displayId, containerId = null) {
+            const input = document.getElementById(inputId);
+            const display = document.getElementById(displayId);
+            
+            if(containerId) toggleVisibility(input.value, containerId);
+
+            input.addEventListener('input', () => {
+                display.innerText = input.value;
+                if(containerId) toggleVisibility(input.value, containerId);
+            });
+        }
+
+        // --- Toggle Foto ---
+        const togglePhotoCheckbox = document.getElementById('togglePhoto');
+        const photoContainer = document.getElementById('photoContainer');
+
+        togglePhotoCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                photoContainer.style.display = 'none';
+            } else {
+                photoContainer.style.display = 'block';
+            }
+        });
+
+        // Inicializações
+        bindInputToDisplay('nameInput', 'displayName');
+        bindInputToDisplay('roleInput', 'displayRole');
+        bindInputToDisplay('ageInput', 'displayAge', 'liAge'); 
+        bindInputToDisplay('summaryInput', 'displaySummary');
+        bindInputToDisplay('locationInput', 'displayLocation', 'liLocation'); // Separate Location
+        bindInputToDisplay('emailInput', 'displayEmail', 'liEmail');
+        bindInputToDisplay('phoneInput', 'displayPhone', 'liPhone');
+        bindInputToDisplay('linkedinInput', 'displayLinkedin', 'liLinkedin');
+        bindInputToDisplay('portfolioInput', 'displayPortfolio', 'liPortfolio');
+
+        // Carregar Foto
+        document.getElementById('photoInput').addEventListener('change', function(e) {
+            if (e.target.files && e.target.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) { document.getElementById('displayPhoto').src = e.target.result; }
+                reader.readAsDataURL(e.target.files[0]);
+            }
+        });
+
+        // Tags
+        function setupTagList(inputId, displayId) {
+            document.getElementById(inputId).addEventListener('input', function(e) {
+                const items = e.target.value.split(',');
+                const display = document.getElementById(displayId);
+                display.innerHTML = '';
+                items.forEach(item => {
+                    if(item.trim() !== '') {
+                        const li = document.createElement('li');
+                        li.innerText = item.trim();
+                        display.appendChild(li);
+                    }
+                });
+            });
+        }
+        setupTagList('skillsInput', 'displaySkills');
+        setupTagList('languagesInput', 'displayLanguages');
+
+        // Experiência e Formação
+        const generateId = () => '_' + Math.random().toString(36).substr(2, 9);
+
+        function createInputBlock(containerId, displayContainerId, type) {
+            const id = generateId();
+            const formContainer = document.getElementById(containerId);
+            const displayContainer = document.getElementById(displayContainerId);
+
+            const placeholder = displayContainer.querySelector('.placeholder-text');
+            if(placeholder) placeholder.remove();
+
+            const editorDiv = document.createElement('div');
+            editorDiv.className = 'form-group style-box';
+            editorDiv.style.border = "1px solid #ddd"; 
+            editorDiv.style.padding = "10px";
+            editorDiv.style.marginBottom = "10px";
+            editorDiv.style.background = "#fafafa";
+            editorDiv.style.borderRadius = "4px";
+            
+            editorDiv.innerHTML = `
+                <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                    <strong style="font-size:0.8rem; color:#666;">${type === 'exp' ? 'Experiência' : 'Formação'}</strong>
+                    <button onclick="removeItem('${id}', this)" style="color:red; background:none; border:none; cursor:pointer; font-weight:bold;">✕</button>
+                </div>
+                <input type="text" placeholder="${type === 'exp' ? 'Cargo' : 'Curso/Grau'}" oninput="updateItem('${id}', 'title', this.value)">
+                <input type="text" placeholder="${type === 'exp' ? 'Empresa' : 'Instituição'}" oninput="updateItem('${id}', 'sub', this.value)">
+                <input type="text" placeholder="Período" oninput="updateItem('${id}', 'date', this.value)">
+                <textarea placeholder="Descrição" oninput="updateItem('${id}', 'desc', this.value)"></textarea>
+            `;
+            formContainer.appendChild(editorDiv);
+
+            const viewDiv = document.createElement('div');
+            viewDiv.className = 'item-block';
+            viewDiv.id = id;
+            viewDiv.innerHTML = `
+                <div class="item-header">
+                    <span class="item-title"></span>
+                    <span class="date-span"></span>
+                </div>
+                <span class="item-sub"></span>
+                <div class="item-desc"></div>
+            `;
+            displayContainer.appendChild(viewDiv);
+        }
+
+        // Funções Globais (Window)
+        window.updateItem = function(id, field, value) {
+            const item = document.getElementById(id);
+            if (!item) return;
+            if(field === 'title') item.querySelector('.item-title').innerText = value;
+            if(field === 'sub') item.querySelector('.item-sub').innerText = value;
+            if(field === 'date') item.querySelector('.date-span').innerText = value;
+            if(field === 'desc') item.querySelector('.item-desc').innerText = value;
+        }
+
+        window.removeItem = function(id, btnElement) {
+            const item = document.getElementById(id);
+            if (item) item.remove();
+            btnElement.parentElement.parentElement.remove();
+        }
+
+        // Expor funções de adicionar para o HTML
+        window.addExperienceField = function() { createInputBlock('experienceFormList', 'displayExperienceList', 'exp'); }
+        window.addEducationField = function() { createInputBlock('educationFormList', 'displayEducationList', 'edu'); }
+
+        // Inicia com um campo de experiência
+        addExperienceField();
+    </script>
 </body>
 </html>
